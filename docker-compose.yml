@@ -1,0 +1,31 @@
+nginx:
+  build: nginx-image
+  links:
+    - letsencrypt
+    - app
+  environment:
+    - MY_DOMAIN_NAME=www.travtarr.com
+  mem_limit: 500m
+  cpu_shares: 256
+  # restart: always
+  ports: 
+    - "80:80"
+    - "443:443"
+  volumes_from:
+    - letsencrypt
+letsencrypt:
+  image: quay.io/letsencrypt/letsencrypt:latest
+  command:  bash -c "sleep 6 && letsencrypt certonly --standalone -d www.travtarr.com -d shop.travtarr.com --text --agree-tos --email trav.tarr@gmail.com --server https://acme-v01.api.letsencrypt.org/directory --rsa-key-size 4096 --verbose --renew-by-default --standalone-supported-challenges http-01"
+  entrypoint: ""
+  volumes:
+    - /etc/letsencrypt
+    - /var/lib/letsencrypt
+  ports:
+    - "80"
+    - "443"
+  environment:
+    - TERM=xterm
+app:
+  build: nodeapp
+  ports:
+    - "80"
